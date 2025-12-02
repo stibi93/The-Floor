@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-socketio
+pillow
+websockets
+requests
+google-search-results
+python-dotenv
+
