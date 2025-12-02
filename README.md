@@ -6,7 +6,7 @@ Ez a doksi segít neked a játék telepítésében, testreszabásában és haszn
 ## 1. Előkészületek
 
 Ahhoz, hogy fusson a gép, ezek kellenek a gépedre:
-- **Python** (3.8 vagy újabb): [Letöltés](https://www.python.org/downloads/)
+- **Python** (3.13 ajánlott nekem azzal megy): [Letöltés](https://www.python.org/downloads/)
 - **Node.js** (Frontendhez): [Letöltés](https://nodejs.org/)
 
 ## 2. Telepítés
