@@ -1,11 +1,11 @@
-# Boldog Karácsonyt Sanyi!!!
+# 🎄 Boldog Karácsonyt Sanyi! 🎄
 ## The Floor - Online Kvíz Játék Használati Útmutató
 
 Ez a doksi segít neked a játék telepítésében, testreszabásában és használatában.
 
 ## 1. Előkészületek
 
-Ahhoz, hogy fusson a gép, ezek kellenek a gépedre:
+Ahhoz, hogy fusson a játék, ezek kellenek a gépedre:
 - **Python** (3.13 ajánlott nekem azzal megy): [Letöltés](https://www.python.org/downloads/)
 - **Node.js** (Frontendhez): [Letöltés](https://nodejs.org/)
 
@@ -20,7 +20,7 @@ Ahhoz, hogy fusson a gép, ezek kellenek a gépedre:
 ## 3. A Játék Indítása
 
 1.  Kattints duplán a **`run.bat`** fájlra.
-2.  Felugrik egy fekete ablak (ez a szerver, ezt **ne zárd be**, amíg játszani akarsz!).
+2.  Felugrik egy fekete ablak amivel elindulna a szerver kompnensek.
 3.  Automatikusan megnyílik a böngészőben a játék (`http://localhost:8000`).
     - A legjobb élményért nyomj egy **F11**-et (teljes képernyő).
 
@@ -30,7 +30,7 @@ Mindent egy felületről tudsz irányítani, akár kivetíted, akár nem.
 
 ### Főképernyő (Pálya)
 - **Kategória választás**: Kattints rá arra, amelyikkel játszani akartok.
-- **Kategóriák Titkosítva**: A képernyő alján lévő gombbal kapcsolhatod be a "Titkos módot". Ilyenkor a kategóriák neve helyett "???" látszik, és a kártyák átfordulnak. Megjegyzi a beállítást a következő játékra is.
+- **Kategóriák Titkosítása**: A képernyő alján lévő gombbal kapcsolhatod be a "Titkos módot". Ilyenkor a kategóriák neve helyett "???" látszik, és a kártyák átfordulnak. Megjegyzi a beállítást a következő játékra is.
 - **Kategóriák Keverése**: A képernyő alján lévő gombbal véletlenszerűen átrendezheted a kategória gombok pozícióját a képernyőn. A keverés után is minden kategória a megfelelő játékot indítja el.
 - **Pálya Reset**: Törli a lejátszott kategóriákat (hogy újra ki tudd választani őket).
 
