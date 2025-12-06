@@ -30,7 +30,8 @@ Mindent egy felületről tudsz irányítani, akár kivetíted, akár nem.
 
 ### Főképernyő (Pálya)
 - **Kategória választás**: Kattints rá arra, amelyikkel játszani akartok.
-- **Mystery Mode**: A képernyő alján lévő gombbal kapcsolhatod be a "Titkos módot". Ilyenkor a kategóriák neve helyett "???" látszik, és a kártyák átfordulnak. Megjegyzi a beállítást a következő játékra is.
+- **Kategóriák Titkosítva**: A képernyő alján lévő gombbal kapcsolhatod be a "Titkos módot". Ilyenkor a kategóriák neve helyett "???" látszik, és a kártyák átfordulnak. Megjegyzi a beállítást a következő játékra is.
+- **Kategóriák Keverése**: A képernyő alján lévő gombbal véletlenszerűen átrendezheted a kategória gombok pozícióját a képernyőn. A keverés után is minden kategória a megfelelő játékot indítja el.
 - **Pálya Reset**: Törli a lejátszott kategóriákat (hogy újra ki tudd választani őket).
 
 ### Játék Előkészítése

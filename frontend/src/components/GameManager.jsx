@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { socket } from '../socket';
-import { ChevronLeft, RefreshCw, Play, X, Check, MinusCircle, Timer, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { ChevronLeft, RefreshCw, Play, X, Check, MinusCircle, Timer, RotateCcw, Eye, EyeOff, Shuffle } from 'lucide-react';
 
 // --- WISE DESIGN COLORS ---
 // Navy: #16335B (Main Background)
@@ -57,6 +57,7 @@ export default function GameManager() {
 // 1. Dashboard View
 function Dashboard({ gameState }) {
   const [categories, setCategories] = useState([]);
+  const [isShuffling, setIsShuffling] = useState(false);
   // Initialize from localStorage or default to false
   const [mysteryMode, setMysteryMode] = useState(() => {
     const saved = localStorage.getItem('mysteryMode');
@@ -66,7 +67,30 @@ function Dashboard({ gameState }) {
   useEffect(() => {
     fetch('http://localhost:8000/api/categories')
       .then(res => res.json())
-      .then(data => setCategories(data));
+      .then(data => {
+        // Check if there's a saved shuffle order
+        const savedOrder = localStorage.getItem('categoryOrder');
+        if (savedOrder) {
+          try {
+            const order = JSON.parse(savedOrder);
+            // Reorder categories based on saved order
+            const orderedCategories = order.map(name => 
+              data.find(cat => cat.name === name)
+            ).filter(Boolean); // Remove any undefined entries (in case categories were removed)
+            
+            // Add any new categories that weren't in the saved order
+            const existingNames = new Set(order);
+            const newCategories = data.filter(cat => !existingNames.has(cat.name));
+            
+            setCategories([...orderedCategories, ...newCategories]);
+          } catch (e) {
+            // If parsing fails, use original order
+            setCategories(data);
+          }
+        } else {
+          setCategories(data);
+        }
+      });
   }, []);
 
   // Persist mystery mode whenever it changes
@@ -89,6 +113,9 @@ function Dashboard({ gameState }) {
   const resetBoard = () => {
     if(confirm('Biztosan törölni akarod a pálya állapotát?')) {
         socket.emit('game_action', { action: 'reset_board' });
+        // Optionally reset category order to original when resetting board
+        // Uncomment the next line if you want to reset order on board reset:
+        // localStorage.removeItem('categoryOrder');
     }
   };
 
@@ -96,11 +123,63 @@ function Dashboard({ gameState }) {
     setMysteryMode(!mysteryMode);
   };
 
+  const shuffleCategories = () => {
+    // Start shuffling animation
+    setIsShuffling(true);
+    
+    // Create a shuffled copy of the categories array
+    const shuffled = [...categories];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Small delay to ensure animation starts, then update categories
+    setTimeout(() => {
+      setCategories(shuffled);
+      // Save the shuffled order to localStorage
+      const order = shuffled.map(cat => cat.name);
+      localStorage.setItem('categoryOrder', JSON.stringify(order));
+      
+      // End shuffling animation after transition completes
+      setTimeout(() => {
+        setIsShuffling(false);
+      }, 800); // Match the transition duration
+    }, 50);
+  };
+
   const count = categories.length;
   const cols = Math.ceil(Math.sqrt(count));
   
   return (
     <div className={`h-screen flex flex-col p-8 ${THEME.bg}`}>
+      <style>{`
+        @keyframes shuffle {
+          0% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+          }
+          25% {
+            transform: scale(0.9) rotate(-5deg);
+            opacity: 0.8;
+          }
+          50% {
+            transform: scale(0.85) rotate(5deg);
+            opacity: 0.7;
+          }
+          75% {
+            transform: scale(0.9) rotate(-3deg);
+            opacity: 0.8;
+          }
+          100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+          }
+        }
+        .animate-shuffle {
+          animation: shuffle 0.8s ease-in-out;
+        }
+      `}</style>
       <div className="flex-1 flex items-center justify-center overflow-hidden">
         <div 
           className="grid gap-4 w-full h-full max-h-full"
@@ -111,7 +190,7 @@ function Dashboard({ gameState }) {
             maxHeight: '85vh'
           }}
         >
-          {categories.map((cat) => {
+          {categories.map((cat, index) => {
             const isPlayed = gameState.played_categories.includes(cat.name);
             return (
               <button 
@@ -120,15 +199,23 @@ function Dashboard({ gameState }) {
                 onClick={() => selectCategory(cat.name)}
                 className={`
                   relative flex items-center justify-center text-center p-2 rounded-xl
-                  font-bold uppercase tracking-wide transition-all duration-500 w-full h-full
+                  font-bold uppercase tracking-wide w-full h-full
+                  ${isShuffling 
+                    ? 'transition-all duration-[800ms] ease-in-out' 
+                    : 'transition-all duration-500'
+                  }
                   ${isPlayed 
                     ? 'bg-[#0E2240]/50 text-gray-500 cursor-not-allowed' 
                     : mysteryMode 
                         ? 'bg-[#2ED06E] text-[#16335B] hover:scale-[1.02] hover:shadow-xl shadow-lg rotate-y-180' 
                         : 'bg-white text-[#16335B] hover:scale-[1.02] hover:shadow-xl shadow-lg'
                   }
+                  ${isShuffling ? 'animate-shuffle' : ''}
                 `}
-                style={{ transformStyle: 'preserve-3d' }}
+                style={{ 
+                  transformStyle: 'preserve-3d',
+                  animationDelay: isShuffling ? `${index * 0.05}s` : '0s'
+                }}
               >
                 <span className="text-[clamp(0.5rem,2vw,1.5rem)] leading-tight break-words w-full px-1">
                   {mysteryMode && !isPlayed ? '???' : cat.name}
@@ -153,7 +240,15 @@ function Dashboard({ gameState }) {
             className={`flex items-center gap-2 px-6 py-3 rounded-full transition-colors font-bold ${mysteryMode ? 'bg-[#2ED06E] text-[#16335B]' : 'bg-[#0E2240] text-gray-400 hover:text-white hover:bg-gray-800'}`}
           >
             {mysteryMode ? <EyeOff size={18} /> : <Eye size={18} />}
-            {mysteryMode ? 'Mystery Mode BE' : 'Mystery Mode'}
+            {mysteryMode ? 'Kategóriák Titkosítása BE' : 'Kategóriák Titkosítása'}
+          </button>
+
+          <button 
+            onClick={shuffleCategories}
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#0E2240] text-gray-400 hover:text-white hover:bg-gray-800 transition-colors font-medium"
+          >
+            <Shuffle size={18} />
+            Kategóriák Keverése
           </button>
       </div>
     </div>
@@ -272,19 +367,19 @@ function ActiveGame({ gameState }) {
 
          <div className="mb-8 animate-in fade-in zoom-in duration-700 w-full max-w-4xl relative z-10">
             <div className="text-xl font-bold text-[#9FE870] uppercase tracking-[0.5em] mb-6 drop-shadow-md">Győztes</div>
-            <div className="text-8xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-[#9FE870] mb-12 text-shine drop-shadow-2xl">
+            <div className="text-8xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-[#9FE870] mb-20 text-shine drop-shadow-2xl">
                 {gameState.winner_name}
             </div>
             
             {/* Show remaining times if available */}
-            <div className="flex justify-center gap-12 mb-16">
+            <div className="flex justify-center gap-12 mb-16 mt-8">
                 <div className="bg-[#0E2240]/80 backdrop-blur-sm p-8 rounded-3xl min-w-[220px] border border-white/10 shadow-2xl transform hover:scale-105 transition-transform">
-                    <div className="text-gray-400 text-sm uppercase mb-3 font-bold tracking-wider">{p1.name}</div>
-                    <div className={`text-5xl font-mono font-black ${gameState.winner === 'p1' ? 'text-[#2ED06E]' : 'text-white'}`}>{Math.ceil(p1.time_left)}s</div>
+                    <div className="text-gray-400 text-sm uppercase mb-4 font-bold tracking-wider">{p1.name}</div>
+                    <div className={`text-5xl font-mono font-black ${gameState.winner === 'p1' ? 'text-[#2ED06E]' : 'text-white'}`}>{p1.time_left.toFixed(2)}s</div>
                 </div>
                 <div className="bg-[#0E2240]/80 backdrop-blur-sm p-8 rounded-3xl min-w-[220px] border border-white/10 shadow-2xl transform hover:scale-105 transition-transform">
-                    <div className="text-gray-400 text-sm uppercase mb-3 font-bold tracking-wider">{p2.name}</div>
-                    <div className={`text-5xl font-mono font-black ${gameState.winner === 'p2' ? 'text-[#2ED06E]' : 'text-white'}`}>{Math.ceil(p2.time_left)}s</div>
+                    <div className="text-gray-400 text-sm uppercase mb-4 font-bold tracking-wider">{p2.name}</div>
+                    <div className={`text-5xl font-mono font-black ${gameState.winner === 'p2' ? 'text-[#2ED06E]' : 'text-white'}`}>{p2.time_left.toFixed(2)}s</div>
                 </div>
             </div>
 
